@@ -73,12 +73,8 @@ class RemoteDispatcher(object):
         for server_data in nonrunning_server_data:
             try:
                 server = self.server_dict[server_data['ip_addr']]
-                if server.dead_count < 5:
-                    print "Restarting %s (%s); Time: %s"%(server_data['server_name'],server_data['ip_addr'],time.strftime("%a, %b %d, %Y %H:%M:%S"))
-                    server.do_all()
-                else:
-                    print "Removing %s (%s) from server list due to inactivity"%(server_data['server_name'],server_data['ip_addr'])
-                    del self.server_dict[server_data['ip_addr']]
+                print "Restarting %s (%s); Time: %s"%(server_data['server_name'],server_data['ip_addr'],time.strftime("%a, %b %d, %Y %H:%M:%S"))
+                server.do_all()
 
             except KeyError:
                 print "Key Error on %s; Time: %s"%(server_data['ip_addr'],time.strftime("%a, %b %d, %Y %H:%M:%S"))
