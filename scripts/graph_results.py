@@ -1,5 +1,4 @@
 import eigenhand_db_interface
-import experiment_manager
 import task_models
 import eigenhand_db_objects
 import eigenhand_db_tools
@@ -10,18 +9,8 @@ import numpy
 import os
 import pdb
 
-def load_results(experiment_name):
-    interface = eigenhand_db_interface.EGHandDBaseInterface('eigenhanddb_view')
-    interface.load_for_analysis(experiment_name=experiment_name)
-    config = interface.load_config()
-    task_model_list = task_models.model_set(config['task_models'])
-    em = experiment_manager.ExperimentManager(config,task_model_list,interface=interface)
-    print "%s loaded into eigenhanddb_view"%experiment_name
-    return em
 
-def output_results(experiment_name):
-    em = load_results(experiment_name)
-
+def output_results(em):
     def add_to_zip(mat, filename, zf):
         numpy.savetxt('/tmp/' + filename,mat,delimiter=',')
         zf.write('/tmp/' + filename, filename)

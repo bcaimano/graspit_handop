@@ -1,5 +1,6 @@
 import time
 import os
+import thread
 
 import remote_dispatcher,  generation_manager
 import eigenhand_db_interface, eigenhand_db_tools, eigenhand_db_objects
@@ -160,6 +161,9 @@ class ExperimentManager(object):
             self.run_remote_dispatcher_tasks()
             print "Finished generation %i"%self.gm.generation
 
+            #Output the newest set of results
+            thread.start_new_thread(output_results,[self.config['name']])
+
 
         self.backup_results()
         print "Backed up final results"
@@ -196,3 +200,16 @@ def restart_servers(server_dict = server_list.clic_lab_dict):
     interface = eigenhand_db_interface.EGHandDBaseInterface()
     rd = remote_dispatcher.RemoteDispatcher(interface)
     rd.init_all_servers(server_dict)
+
+def load_results(experiment_name):
+    interface = eigenhand_db_interface.EGHandDBaseInterface('eigenhanddb_view')
+    interface.load_for_analysis(experiment_name=experiment_name)
+    config = interface.load_config()
+    task_model_list = task_models.model_set(config['task_models'])
+    em = experiment_manager.ExperimentManager(config,task_model_list,interface=interface)
+    print "%s loaded into eigenhanddb_view"%experiment_name
+    return em
+
+def output_results(experiment_name):
+    em = load_results(experiment_name)
+    graph_results.output_results(em)
