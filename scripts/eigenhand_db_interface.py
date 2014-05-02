@@ -187,8 +187,9 @@ class EGHandDBaseInterface(object):
         Assumes that the starting set of hands is all hands with an id below 313.
         """
         self.clear_tables(schema=schema)
+        self.update_config({'name':'<NONE>','ga_iterations':-1,'atr_iterations':-1,'task_time':1,'task_type_id':4,'trials_per_task':5,'task_models':['aerosol']})
 
-    def clear_tables(self,tables=['config','generation','task','grasp','hand','finger','server','job','log'],schema="public"):
+    def clear_tables(self,tables=['generation','task','grasp','hand','finger','server','job','log'],schema="public"):
         for table in tables:
             self.cursor.execute("delete from %s.%s;"%(schema,table))
             self.connection.commit()
@@ -224,16 +225,21 @@ class EGHandDBaseInterface(object):
         self.cursor.execute("DROP DATABASE IF EXISTS  %s;"%(db_name))
         self.connection.commit()
 
-    def prepare_gen_0(self):
-        self.reset_database()
-        self.insert_gen_0()
-
     def state_backup(self, base_directory = '/data', experiment_name="default"):
+        def touch(fname, times=None):
+            with open(fname, 'a'):
+                os.utime(fname, times)
+                os.chmod(fname,0777)
+                
         dirname = "%s/%s"%(base_directory,experiment_name)
+        
         if not os.path.exists(dirname):
             os.makedirs(dirname)
             os.chmod(dirname,0777)
 
+        touch(dirname + '/config')
+        touch(dirname + '/generation')
+        
         self.cursor.execute("COPY %s TO '%s/%s'"%("config", dirname, "config"))
         self.cursor.execute("COPY %s TO '%s/%s'"%("generation", dirname, "generation"))
         self.connection.commit()
@@ -579,6 +585,7 @@ class EGHandDBaseInterface(object):
 
     def update_config(self,config):
         set_str = ""
+        print config
         for config_key, config_var in config.iteritems():
             set_str += config_key + "='"
             if type(config_var) == list:
